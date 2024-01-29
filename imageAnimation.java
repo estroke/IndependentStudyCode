@@ -97,15 +97,20 @@ public class imageAnimation{
         //creation of instances of classes
         imageProcessing imageProcessing = new imageProcessing();
         imageSegmentation imageSegmentation = new imageSegmentation();
+        imageSegmentation thresholdSegmentation = new imageSegmentation();
         image img = new image();
 
         //populating the image class by reading from the image file and using the regional growth method
         //one time for entire image
+        
         try {
             img.populateImage(file);
-            imageSegmentation.regionalGrowth(img.image, 921,141,50);
+            imageSegmentation.regionalGrowth(img.image, 721,641,30);
+            thresholdSegmentation.threshold(img.image, 100);
+            imageSegmentation.returnWholeImage(img.image);
             //try a threshold search with a short upper bound
             imageProcessing.simpleTranslation(imageSegmentation.region, img.image);
+            
             System.out.println(imageProcessing.newRegion.size());
             //imageProcessing.Brightness(imageSegmentation.region, img.image, 100);
             // 721,241,30 trees
@@ -118,6 +123,8 @@ public class imageAnimation{
 
         width = img.image.getWidth();
         height = img.image.getHeight();
+        
+        
         
         final Timer translatioTimer = new Timer();
         translatioTimer.scheduleAtFixedRate(new TimerTask() {
@@ -140,27 +147,63 @@ public class imageAnimation{
         //pixels or can use the image processing region.
         final Timer changeImageTimer = new Timer();
         changeImageTimer.scheduleAtFixedRate(new TimerTask() {
-
+            int i = 0;
+            float j = (float).99;
             public void run() {
                 System.out.println(imageProcessing.newRegion.size());
-
-                for (int[] coordinates:imageSegmentation.region) {
-                    //int[] coordinates = imageProcessing.newRegion.get(j);
-                    int startX = coordinates[0];
-                    int startY = coordinates[1];
-                    int pixel = img.image.getRGB(startX,startY);
-                    //System.out.println(startX);
-                    //img.image.setRGB(startX,startY,255);
-                    startX = startX + newX;
-
-                    if (startX < img.image.getWidth() && startX >= 0) {
-                        img.image.setRGB(startX,startY,pixel);
+                
+                
+                    try {
+                        imageProcessing.Brightness(thresholdSegmentation.region,img.image,i);
+                        //imageProcessing.Brightness(imageSegmentation.imageCoordinateList, img.image, i);
+                        imageProcessing.ContrastMethod(imageSegmentation.region,img.image,j);
+                        
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
                     }
-                }
+                i= i - 3;
+                j = j - (float).02;
+                // for (int[] coordinates:imageSegmentation.region) {
+                //     //int[] coordinates = imageProcessing.newRegion.get(j);
+                //     int startX = coordinates[0];
+                //     int startY = coordinates[1];
+                //     int pixel = img.image.getRGB(startX,startY);
+                //     //System.out.println(startX);
+                //     //img.image.setRGB(startX,startY,255);
+                //     startX = startX + newX;
+
+                //     if (startX < img.image.getWidth() && startX >= 0) {
+                //         img.image.setRGB(startX,startY,pixel);
+                //     }
+                // }
                 System.out.println("I'm here with imageChangeTimer");
             }
          
-        }, 0L, 1000L);
+        }, 2000L, 6000L);
+
+        final Timer switchImageTimer = new Timer();
+        switchImageTimer.scheduleAtFixedRate(new TimerTask() {
+            int i = 0;
+            
+            public void run() {
+                System.out.println(imageProcessing.newRegion.size());
+                
+                
+                    try {
+
+                        imageProcessing.Brightness(imageSegmentation.imageCoordinateList, img.image, i);
+                        
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    }
+                i= i - 3;
+                
+                System.out.println("I'm here with switchImageTimer");
+            }
+         
+        }, 10000L, 10000L);
 
         //the L is for long so 2000L means 2 seconds
 
